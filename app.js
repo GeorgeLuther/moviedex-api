@@ -12,6 +12,7 @@ app.use(helmet())
 app.use(cors())
 
 const movies = require('./movies-data-small.js')
+const e = require('express')
 
 //VALIDATION
 app.use(
@@ -20,7 +21,7 @@ app.use(
     const API_TOKEN = process.env.API_TOKEN
     const authVal = req.get('Authorization') || ''
     if (!authVal.startsWith('Bearer ')) {
-        return res.status(401).json({ message: 'Missing Bearer token'})
+        return res.status(401).json({ message: 'Unauthorized'})
     }
 
     const token = authVal.split(' ')[1]
@@ -50,8 +51,18 @@ app.get('/movie', (req, res)=>{
     res.json(output)
 })
 
+app.use((error, rew, res, next)=>{
+    let response
+    if (process.env.NODE_ENV === 'production') {
+        response = {error: {message: 'server error'}}
+    } else {
+        response = { error }
+    }
+    res.status(500).json(response)
+})
+
 const PORT = process.env.PORT || 8000
 
 app.listen(PORT, () => {
-  console.log(`Server listening at http://localhost:${PORT}`)
+  //console.log(`Server listening at http://localhost:${PORT}`)
 })
